@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <EditText
+        android:id="@+id/editTextCity"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Введите город" />
+
+    <Button
+        android:id="@+id/buttonGetWeather"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Получить погоду"
+        android:layout_below="@id/editTextCity"
+        android:layout_marginTop="16dp" />
+    <Button
+        android:id="@+id/buttonGetLocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Получить погоду по GPS"
+        android:layout_below="@id/buttonGetWeather"
+        android:layout_marginTop="16dp" />
+    <ToggleButton
+        android:id="@+id/toggleTemperature"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="°C"
+        android:layout_below="@id/textViewForecast"
+        android:layout_marginTop="16dp" />
+
+    <TextView
+        android:id="@+id/textViewWeather"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/buttonGetWeather"
+        android:layout_marginTop="103dp" />
+    <TextView
+        android:id="@+id/textViewForecast"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/textViewWeather"
+        android:layout_marginTop="16dp"
+        android:textSize="16sp"
+        android:padding="16dp" />
+
+</RelativeLayout>
