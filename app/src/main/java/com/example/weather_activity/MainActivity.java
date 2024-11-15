@@ -66,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
         toggleTemperature.setOnCheckedChangeListener((buttonView, isChecked) -> {
             isCelsius = !isChecked; // Если включен, то °F, если выключен - °C
             toggleTemperature.setText(isCelsius ? "°C" : "°F");
-            // Обновите погоду, чтобы отобразить данные в выбранной единице измерения
+            // Обновить погоду, чтобы отобразить данные в выбранной единице измерения
             String city = editTextCity.getText().toString();
             if (!city.isEmpty()) {
                 getWeatherData(city);
@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void displayWeatherData(JSONObject response) {
         try {
-            String weatherInfo = response.getJSONArray("weather").getJSONObject(0).getString("description");
+
             String weatherIcon = response.getJSONArray("weather").getJSONObject(0).getString("icon");
             double temperature = response.getJSONObject("main").getDouble("temp");
             double feelsLike = response.getJSONObject("main").getDouble("feels_like");
@@ -128,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setWeatherImage(String weatherIcon) {
         String iconUrl = "https://openweathermap.org/img/wn/" + weatherIcon + "@2x.png";
-        // Используйте библиотеку, такую как Glide или Picasso, чтобы загрузить изображение из URL
+        // загрузить изображение из URL
         Glide.with(this)
                 .load(iconUrl)
                 .into(imageViewWeather);
