@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void displayWeatherData(JSONObject response) {
         try {
-
+            String weatherInfo = response.getJSONArray("weather").getJSONObject(0).getString("description");
             String weatherIcon = response.getJSONArray("weather").getJSONObject(0).getString("icon");
             double temperature = response.getJSONObject("main").getDouble("temp");
             double feelsLike = response.getJSONObject("main").getDouble("feels_like");
