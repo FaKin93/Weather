@@ -9,6 +9,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
@@ -18,6 +19,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 import android.widget.Toast;
@@ -28,23 +30,24 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.bumptech.glide.Glide;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
     private EditText editTextCity;
     private Button buttonGetWeather, buttonGetLocation;
-    private TextView textViewWeather, textViewForecast;
+    private TextView textViewWeather;
+    private ImageView imageViewWeather;
     private ToggleButton toggleTemperature;
 
     private final String API_KEY = "64818fa4f88dadd7232bee593a2ce9f7";
     private FusedLocationProviderClient fusedLocationClient;
-    private boolean isCelsius = true;
+    private boolean isCelsius = true; // По умолчанию температура в Цельсиях
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
         buttonGetWeather = findViewById(R.id.buttonGetWeather);
         buttonGetLocation = findViewById(R.id.buttonGetLocation);
         textViewWeather = findViewById(R.id.textViewWeather);
-        textViewForecast = findViewById(R.id.textViewForecast);
+        imageViewWeather = findViewById(R.id.imageViewWeather);
         toggleTemperature = findViewById(R.id.toggleTemperature);
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -92,59 +95,7 @@ public class MainActivity extends AppCompatActivity {
 
         RequestQueue requestQueue = Volley.newRequestQueue(this);
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
-                response -> {
-                    displayWeatherData(response);
-                    try {
-                        double latitude = response.getJSONObject("coord").getDouble("lat");
-                        double longitude = response.getJSONObject("coord").getDouble("lon");
-                        get7DayForecast(latitude, longitude);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                },
-                error -> Toast.makeText(MainActivity.this, "Ошибка сети", Toast.LENGTH_SHORT).show()
-        );
-
-        requestQueue.add(jsonObjectRequest);
-    }
-
-    private void get7DayForecast(double latitude, double longitude) {
-        String units = isCelsius ? "metric" : "imperial"; // Устанавливаем единицы измерения
-        String url = "https://api.openweathermap.org/data/2.5/onecall?lat=" + latitude + "&lon=" + longitude + "&exclude=current,minutely,hourly,alerts&appid=" + API_KEY + "&units=" + units;
-
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
-                response -> {
-                    try {
-                        JSONArray daily = response.getJSONArray("daily");
-                        StringBuilder forecastBuilder = new StringBuilder("7-дневный прогноз:\n");
-
-                        for (int i = 0; i < daily.length(); i++) {
-                            JSONObject day = daily.getJSONObject(i);
-                            long sunrise = day.getLong("sunrise");
-                            long sunset = day.getLong("sunset");
-                            double tempDay = day.getJSONObject("temp").getDouble("day");
-                            double feelsLike = day.getJSONObject("feels_like").getDouble("day");
-                            double humidity = day.getDouble("humidity");
-                            double windSpeed = day.getDouble("wind_speed");
-                            String windDirection = day.getString("wind_deg") + "°";
-
-                            forecastBuilder.append("День ").append(i + 1).append(":\n")
-                                    .append("Температура: ").append(tempDay).append(isCelsius ? "°C" : "°F").append("\n")
-                                    .append("Ощущается как: ").append(feelsLike).append(isCelsius ? "°C" : "°F").append("\n")
-                                    .append("Влажность: ").append(humidity).append("%\n")
-                                    .append("Скорость ветра: ").append(windSpeed).append(" м/с\n")
-                                    .append("Направление ветра: ").append(windDirection).append("\n")
-                                    .append("Восход: ").append(convertUnixToTime(sunrise)).append("\n")
-                                    .append("Закат: ").append(convertUnixToTime(sunset)).append("\n\n");
-                        }
-
-                        textViewForecast.setText(forecastBuilder.toString());
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                        Toast.makeText(MainActivity.this, "Ошибка получения прогноза", Toast.LENGTH_SHORT).show();
-                    }
-                },
+                response -> displayWeatherData(response),
                 error -> Toast.makeText(MainActivity.this, "Ошибка сети", Toast.LENGTH_SHORT).show()
         );
 
@@ -154,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
     private void displayWeatherData(JSONObject response) {
         try {
             String weatherInfo = response.getJSONArray("weather").getJSONObject(0).getString("description");
+            String weatherIcon = response.getJSONArray("weather").getJSONObject(0).getString("icon");
             double temperature = response.getJSONObject("main").getDouble("temp");
             double feelsLike = response.getJSONObject("main").getDouble("feels_like");
             double humidity = response.getJSONObject("main").getDouble("humidity");
@@ -164,18 +116,22 @@ public class MainActivity extends AppCompatActivity {
                     "Ощущается как: " + feelsLike + (isCelsius ? "°C" : "°F") + "\n" +
                     "Влажность: " + humidity + "%\n" +
                     "Скорость ветра: " + windSpeed + " м/с\n" +
-                    "Направление ветра: " + windDirection + "°\n" +
-                    "Погода: " + weatherInfo);
+                    "Направление ветра: " + windDirection + "°");
+
+            // Установка изображения состояния погоды
+            setWeatherImage(weatherIcon);
         } catch (JSONException e) {
             e.printStackTrace();
             Toast.makeText(MainActivity.this, "Ошибка получения данных", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private String convertUnixToTime(long unixTime) {
-        java.util.Date date = new java.util.Date(unixTime * 1000);
-        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm");
-        return sdf.format(date);
+    private void setWeatherImage(String weatherIcon) {
+        String iconUrl = "https://openweathermap.org/img/wn/" + weatherIcon + "@2x.png";
+        // Используйте библиотеку, такую как Glide или Picasso, чтобы загрузить изображение из URL
+        Glide.with(this)
+                .load(iconUrl)
+                .into(imageViewWeather);
     }
 
     private void getLocation() {
@@ -199,16 +155,7 @@ public class MainActivity extends AppCompatActivity {
 
         RequestQueue requestQueue = Volley.newRequestQueue(this);
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.GET, url, null,
-                response -> {
-                    displayWeatherData(response);
-                    try {
-                        double lat = response.getJSONObject("coord").getDouble("lat");
-                        double lon = response.getJSONObject("coord").getDouble("lon");
-                        get7DayForecast(lat, lon);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                },
+                response -> displayWeatherData(response),
                 error -> Toast.makeText(MainActivity.this, "Ошибка сети", Toast.LENGTH_SHORT).show()
         );
 

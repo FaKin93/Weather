@@ -29,6 +29,8 @@ android {
 }
 
 dependencies {
+    implementation libs.glide
+    annotationProcessor libs.compiler
     implementation libs.volley // Для работы с сетевыми запросами
     implementation libs.gson // Для работы с JSON
     implementation libs.play.services.location
